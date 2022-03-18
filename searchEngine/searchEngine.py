@@ -1,20 +1,19 @@
-import sys
 import pandas as pd
-import os
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon, QPixmap, QFont, QFontDatabase
-from PyQt5.QtCore import QCoreApplication, QSize, QFileInfo
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 class MyApp(QMainWindow):
 
-    width = 1000
-    length = 1000
+    width = 1200
+    length = 1200
     #entity = pd.read_csv('Entity.csv', usecols=colsEnt[1:], encoding='UTF-8')
     #intent = pd.read_csv('Intent.csv', usecols=colsInt[1:], encoding='UTF-8')
 
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.setStyleSheet("background-color: white;")
 
     def initUI(self):
         self.menu()
@@ -132,13 +131,21 @@ class MyWidget(QWidget):
 
         for i in range(len(intent["intentName"])):
             cb = QCheckBox(str(intent["intentName"][i]))
-            searchGrid.addWidget(cb, i+2, 0, 1, 3)
-            searchGrid.addWidget(QLabel(intent["exampleSentence"][i]), i+2, 1, 1, 3)
+            searchGrid.addWidget(cb, i+2, 0)
+            searchGrid.addWidget(QLabel(intent["exampleSentence"][i]), i+2, 1)
+
+        scrollBox = QHBoxLayout()
+        scrollBox.addStretch(1)
+        scrollBox.addWidget(scrollArea, 4)
+        scrollBox.addStretch(1)
 
         #bottom box
         bottomBox = QHBoxLayout()
         bottomBox.addStretch(1)
-        bottomBox.addWidget(quitBtn)
+        bottomButtons = QGridLayout()
+        bottomButtons.addWidget(printBtn, 0, 0)
+        bottomButtons.addWidget(quitBtn, 0, 1)
+        bottomBox.addLayout(bottomButtons)
         bottomBox.addStretch(1)
 
         #top logo
@@ -165,21 +172,22 @@ class MyWidget(QWidget):
         vbox.addLayout(logoBox)
         vbox.addStretch(1)
         vbox.addLayout(hbox)
-        vbox.addWidget(scrollArea)
+        vbox.addLayout(scrollBox)
         vbox.addStretch(1)
         vbox.addLayout(bottomBox)
 
         self.setLayout(vbox)
 
     def search_clicked(self):
-        searchAlgo.start()
+        searchAlgo.start(True)
 
     def image(path):
         pixmap = QPixmap(path)
         return QLabel(pixmap)
 
-class searchAlgo():
-    def start():
+class searchAlgo:
+    def start(programStatus):
+
         yesList = ['yes', 'y', 'sure', 'si', '네', '끝']
         noList = ['no', 'add', '추가', '더']
 
@@ -190,7 +198,6 @@ class searchAlgo():
         colsInt = pd.read_csv('Intent.csv', nrows = 1).columns #list of intent column names
         entity = pd.read_csv('Entity.csv', usecols=colsEnt[1:], encoding='UTF-8')
         intent = pd.read_csv('Intent.csv', usecols=colsInt[1:], encoding='UTF-8')
-        programStatus = False
 
         while programStatus is True:
             text = input('Which Intent do you wish to find? : ').lower()

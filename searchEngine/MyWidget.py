@@ -6,18 +6,30 @@ import searchAlgo
 
 
 class MyWidget(QWidget):
-    global checkBoxArr, entity, utterance, intent
+    global checkBoxArr
     checkBoxArr = []
+
+    global entity, utterance, intent
     colsEnt = pd.read_csv('Entity.csv', nrows = 1).columns #list of entity column names
     colsInt = pd.read_csv('Intent.csv', nrows = 1).columns #list of intent column names
     entity = pd.read_csv('Entity.csv', usecols=colsEnt[1:], encoding='UTF-8')
     utterance = pd.read_csv('Intent.csv', usecols=colsInt[1:], encoding='UTF-8')
-    intent = {"intentName": [], "exampleSentence":[]}
+    intent = {"intentName": [], "exampleSentence": [], "intStart": [], "utterCnt": []}
 
+    utterCnt = 0
     for i in range(len(utterance)):
+        utterCnt += 1
+        #utterance's first column being the intent's name
         if utterance.loc[i][0] not in intent["intentName"]:
             intent["intentName"].append(utterance.loc[i][0])
             intent["exampleSentence"].append(utterance.loc[i][3])
+            intent["intStart"].append(i)
+            intent["utterCnt"].append(utterCnt)
+            utterCnt = 0
+
+    intent["utterCnt"].pop(0)
+
+    print(intent["utterCnt"])
 
     def __init__(self):
         super().__init__()
@@ -94,13 +106,10 @@ class MyWidget(QWidget):
 
         #세로 간격 조정
         vbox = QVBoxLayout()
-        vbox.addStretch(1)
-        vbox.addLayout(logoBox)
-        vbox.addStretch(1)
-        vbox.addLayout(hbox)
-        vbox.addLayout(scrollBox)
-        vbox.addStretch(1)
-        vbox.addLayout(bottomBox)
+        vbox.addLayout(logoBox, 1)
+        vbox.addLayout(hbox, 2)
+        vbox.addLayout(scrollBox, 5)
+        vbox.addLayout(bottomBox, 1)
 
         self.setLayout(vbox)
 

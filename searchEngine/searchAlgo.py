@@ -1,20 +1,20 @@
 import sys
 import os
 import pandas as pd
+import MyWidget as MW
 
 class searchAlgo:
+
+    global IntentsToPrint
+    IntentsToPrint = []
+
     def start(programStatus):
 
         yesList = ['yes', 'y', 'sure', 'si', '네', '끝']
         noList = ['no', 'add', '추가', '더']
 
-        searchResult_entity = open('entResult.txt', 'w', encoding="utf-8") #write here - entity
-        searchResult_intent = open('intResult.txt', 'w', encoding="utf-8") #write here - intent
-
-        colsEnt = pd.read_csv('Entity.csv', nrows = 1).columns #list of entity column names
-        colsInt = pd.read_csv('Intent.csv', nrows = 1).columns #list of intent column names
-        entity = pd.read_csv('Entity.csv', usecols=colsEnt[1:], encoding='UTF-8')
-        intent = pd.read_csv('Intent.csv', usecols=colsInt[1:], encoding='UTF-8')
+        intent = MW.intent
+        entity = MW.entity
 
         while programStatus is True:
             text = input('Which Intent do you wish to find? : ').lower()
@@ -37,3 +37,12 @@ class searchAlgo:
 
             if text_end in yesList:
                 programStatus = False
+
+
+    def AddIntent(IntentName):
+        #1. add by check
+        #2. sort first, then add (alphabetical order)
+
+    def print():
+        searchResult_entity = open('entResult.txt', 'w', encoding="utf-8") #write here - entity
+        searchResult_intent = open('intResult.txt', 'w', encoding="utf-8") #write here - intent
