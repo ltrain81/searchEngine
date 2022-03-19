@@ -3,11 +3,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import pandas as pd
 import searchAlgo
+import check
 
 
 class MyWidget(QWidget):
-    global checkBoxArr
-    checkBoxArr = []
 
     global entity, utterance, intent
     colsEnt = pd.read_csv('Entity.csv', nrows = 1).columns #list of entity column names
@@ -29,8 +28,6 @@ class MyWidget(QWidget):
 
     intent["utterCnt"].pop(0)
 
-    print(intent["utterCnt"])
-
     def __init__(self):
         super().__init__()
         self.buttons()
@@ -51,10 +48,9 @@ class MyWidget(QWidget):
         printBtn = QPushButton('Print')
         printBtn.setIcon(QIcon('./icons/print.png'))
         printBtn.resize(quitBtn.sizeHint())
-        printBtn.clicked.connect(QCoreApplication.instance().quit)
+        printBtn.clicked.connect(self.printClicked)
 
     def layout(self):
-
         #search Bar
         searchBar = QGridLayout()
         searchBar.addWidget(searchBtn, 0, 1)
@@ -64,13 +60,14 @@ class MyWidget(QWidget):
         scrollArea = QScrollArea()
         scrollArea.setWidgetResizable(True)
         scrollAreaContents = QWidget()
-        searchGrid = QGridLayout(scrollAreaContents)
+        self.searchGrid = QGridLayout(scrollAreaContents)
         scrollArea.setWidget(scrollAreaContents)
 
         for i in range(len(intent["intentName"])):
             cb = QCheckBox(str(intent["intentName"][i]))
-            searchGrid.addWidget(cb, i+2, 0)
-            searchGrid.addWidget(QLabel(intent["exampleSentence"][i]), i+2, 1)
+            cb.setChecked(False)
+            self.searchGrid.addWidget(cb, i+2, 0)
+            self.searchGrid.addWidget(QLabel(intent["exampleSentence"][i]), i+2, 1)
 
         scrollBox = QHBoxLayout()
         scrollBox.addStretch(1)
@@ -111,11 +108,13 @@ class MyWidget(QWidget):
         vbox.addLayout(scrollBox, 5)
         vbox.addLayout(bottomBox, 1)
 
+
         self.setLayout(vbox)
+
+    def printClicked(self):
+        searchGrid = self.searchGrid
+        for i in range(searchGrid.rowCount()):
+            print(searchGrid.itemAtPosition(i, 0))
 
     def search_clicked(self):
         searchAlgo.searchAlgo.start(True)
-
-    def image(path):
-        pixmap = QPixmap(path)
-        return QLabel(pixmap)

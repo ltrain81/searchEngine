@@ -42,7 +42,8 @@ class searchAlgo:
     def AddIntent(IntentName):
         #1. add by check
         #2. sort first, then add (alphabetical order)
+        print(1)
 
-    def print():
+    def print(IntentsToPrint):
         searchResult_entity = open('entResult.txt', 'w', encoding="utf-8") #write here - entity
         searchResult_intent = open('intResult.txt', 'w', encoding="utf-8") #write here - intent
