@@ -7,21 +7,21 @@ import check
 
 
 class MyWidget(QWidget):
-
-    global entity, utterance, intent
+    global entity, utterance, intent, checkedtoPrint
     colsEnt = pd.read_csv('Entity.csv', nrows = 1).columns #list of entity column names
     colsInt = pd.read_csv('Intent.csv', nrows = 1).columns #list of intent column names
     entity = pd.read_csv('Entity.csv', usecols=colsEnt[1:], encoding='UTF-8')
-    utterance = pd.read_csv('Intent.csv', usecols=colsInt[1:], encoding='UTF-8')
+    utterance = pd.read_csv('Intent.csv', encoding='UTF-8')
     intent = {"intentName": [], "exampleSentence": [], "intStart": [], "utterCnt": []}
+    checkedtoPrint = []
 
     utterCnt = 0
     for i in range(len(utterance)):
         utterCnt += 1
         #utterance's first column being the intent's name
-        if utterance.loc[i][0] not in intent["intentName"]:
-            intent["intentName"].append(utterance.loc[i][0])
-            intent["exampleSentence"].append(utterance.loc[i][3])
+        if utterance.loc[i][1] not in intent["intentName"]:
+            intent["intentName"].append(utterance.loc[i][1])
+            intent["exampleSentence"].append(utterance.loc[i][4])
             intent["intStart"].append(i)
             intent["utterCnt"].append(utterCnt)
             utterCnt = 0
@@ -30,8 +30,10 @@ class MyWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.checkBoxes = []
         self.buttons()
         self.layout()
+
 
     def buttons(self):
         global quitBtn, searchBtn, printBtn
@@ -48,7 +50,7 @@ class MyWidget(QWidget):
         printBtn = QPushButton('Print')
         printBtn.setIcon(QIcon('./icons/print.png'))
         printBtn.resize(quitBtn.sizeHint())
-        printBtn.clicked.connect(self.printClicked)
+        printBtn.clicked.connect(check.printClicked)
 
     def layout(self):
         #search Bar
@@ -65,8 +67,12 @@ class MyWidget(QWidget):
 
         for i in range(len(intent["intentName"])):
             cb = QCheckBox(str(intent["intentName"][i]))
-            cb.setChecked(False)
-            self.searchGrid.addWidget(cb, i+2, 0)
+            self.checkBoxes.append(cb)
+
+        for i in range(len(self.checkBoxes)):
+            self.checkBoxes[i].stateChanged.connect(check.on_checked)
+            self.checkBoxes[i].setChecked(Qt.Unchecked)
+            self.searchGrid.addWidget(self.checkBoxes[i], i+2, 0)
             self.searchGrid.addWidget(QLabel(intent["exampleSentence"][i]), i+2, 1)
 
         scrollBox = QHBoxLayout()
@@ -108,13 +114,21 @@ class MyWidget(QWidget):
         vbox.addLayout(scrollBox, 5)
         vbox.addLayout(bottomBox, 1)
 
-
         self.setLayout(vbox)
 
-    def printClicked(self):
-        searchGrid = self.searchGrid
-        for i in range(searchGrid.rowCount()):
-            print(searchGrid.itemAtPosition(i, 0))
 
-    def search_clicked(self):
-        searchAlgo.searchAlgo.start(True)
+    def on_checked(self):
+        searchGrid = self.searchGrid
+        for i in range(searchGrid.rowCount() - 2):
+            cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
+            if cb.isChecked() is True:
+                if cb.text() not in checkedtoPrint:
+                    checkedtoPrint.append(cb.text())
+            else:
+                if cb.text() in checkedtoPrint:
+                    checkedtoPrint.remove(cb.text())
+
+
+    def search_clicked(self, state):
+
+        print(checkedtoPrint)

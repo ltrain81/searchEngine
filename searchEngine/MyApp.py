@@ -11,7 +11,6 @@ class MyApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
-
         self.initUI()
         self.setStyleSheet("background-color: white;")
 
@@ -22,7 +21,6 @@ class MyApp(QMainWindow):
         self.setWindowIcon(QIcon('./icons/logo.png'))
 
         widget = MyWidget.MyWidget()
-
         self.setCentralWidget(widget)
         self.setGeometry(300, 300, self.width, self.length)
         self.show()
