@@ -6,9 +6,9 @@ import MyWidget
 def printClicked():
     MyWidget.checkedtoPrint.sort()
     intent = MyWidget.intent
-    entity = MyWidget.entity
     utterance = MyWidget.utterance
     index_to_print = []
+
     for i in range(len(MyWidget.checkedtoPrint)):
         index = MyWidget.intent["intentName"].index(MyWidget.checkedtoPrint[i])
         index_to_print.append(index)
@@ -17,15 +17,18 @@ def printClicked():
         utStart = intent["intStart"][index]
         utCount = intent["utterCnt"][index]
         df = utterance.loc[utStart:utStart+utCount-1]
-        print(df)
+        df.to_csv("./results/result_intent", mode='a', header = False)
 
-def on_checked(self):
-    searchGrid = self.searchGrid
+    print("Print Finished!")
+
+def on_checked():
+    searchGrid = MyWidget.searchGrid
     for i in range(searchGrid.rowCount() - 2):
-        cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
+        cb = searchGrid.itemAtPosition(i+2, 0).widget()
         if cb.isChecked() is True:
-            if cb.text() not in checkedtoPrint:
-                checkedtoPrint.append(cb.text())
+            if cb.text() not in MyWidget.checkedtoPrint:
+                MyWidget.checkedtoPrint.append(cb.text())
         else:
-            if cb.text() in checkedtoPrint:
-                checkedtoPrint.remove(cb.text())
+            if cb.text() in MyWidget.checkedtoPrint:
+                MyWidget.checkedtoPrint.remove(cb.text())
+

@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import MyWidget
+import check
 
 class MyApp(QMainWindow):
 
@@ -48,7 +49,7 @@ class MyApp(QMainWindow):
         printAction = QAction(QIcon('./icons/print.png'), 'Print', self)
         printAction.setShortcut('Ctrl+h')
         printAction.setStatusTip('Print Intents as CSV')
-        printAction.triggered.connect(qApp.quit) #change this to print
+        printAction.triggered.connect(check.printClicked) #change this to print
 
         #status bar
         self.statusBar()
@@ -69,9 +70,3 @@ class MyApp(QMainWindow):
         filemenu.addAction(exitAction)
 
         self.statusBar()
-        self.toolbar = self.addToolBar('Toolbar')
-        self.setIconSize(QSize(50, 50))
-        self.toolbar.addAction(backAction)
-        self.toolbar.addAction(saveAction)
-        self.toolbar.addAction(exitAction)
-        self.toolbar.addAction(printAction)
