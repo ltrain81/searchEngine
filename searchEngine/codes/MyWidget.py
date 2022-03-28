@@ -16,11 +16,12 @@ class MyWidget(QWidget):
         global entity, utterance, intent, checkedtoPrint, exampleSentence
 
         self.checkBoxes = []
-        self.searchedIndex = []
+
         self.cbShow = []
-        self.searchText = []
         self.category_to_show = []
+        self.searchedIndex = []
         self.option_to_show = []
+
         checkedtoPrint = []
         exampleSentence = []
         entity = []
@@ -123,9 +124,15 @@ class MyWidget(QWidget):
             cb = QCheckBox(str(intent["intentName"][i]))
             cb.setStyleSheet("color: black")
             self.checkBoxes.append(cb)
+
             sent = QLabel(intent["exampleSentence"][i])
             sent.setStyleSheet("color: black")
+
+            tooltip = self.exampleTooltip(i)
+
+            sent.setToolTip(tooltip)
             exampleSentence.append(sent)
+
             self.cbShow.append(i)
             self.searchedIndex.append(i)
             self.category_to_show.append(i)
@@ -196,6 +203,22 @@ class MyWidget(QWidget):
 
         self.setLayout(vbox)
 
+
+    def exampleTooltip(self, index):
+        example_package = ""
+        cnt = 0
+        utStart = intent["intStart"][index]
+        for i in range(intent["utterCnt"][index]):
+            utIndex = utStart + i
+            example_package += utterance.loc[utIndex][4] + "\n"
+            cnt += 1
+            if cnt == 10:
+                break
+
+        return example_package
+
+
+
     def on_checked(self):
         searchGrid = self.searchGrid
         option = showOptionBox.currentIndex()
@@ -213,7 +236,12 @@ class MyWidget(QWidget):
 
     def search_clicked(self):
         input = self.searchText.text()
+        searchGrid = self.searchGrid
         self.searchedIndex = searchAlgo.searchAlgo.IntentSearch(input)
+        for index in self.searchedIndex:
+            searchGrid.itemAtPosition(index+2, 1).widget().setText(exampleSentence[index].text())
+
+
         self.showCB()
 
     def categoryChanged(self):
@@ -225,7 +253,6 @@ class MyWidget(QWidget):
             if current_category == '전체' and i not in self.category_to_show:
                 self.category_to_show.append(i)
             elif current_category != '전체':
-                print(current_category)
                 if intent["category"][i] == current_category and i not in self.category_to_show:
                     self.category_to_show.append(i)
                 elif intent["category"][i] != current_category and i in self.category_to_show:
@@ -294,12 +321,6 @@ class MyWidget(QWidget):
         searchGrid = self.searchGrid
 
         self.cbShow = set(self.searchedIndex) & set(self.category_to_show) & set(self.option_to_show)
-
-        print("\n")
-        print(self.searchedIndex)
-        print(self.category_to_show)
-        print(self.option_to_show)
-        print(self.cbShow)
 
         for i in range(searchGrid.rowCount() - 2):
             cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
