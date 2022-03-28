@@ -14,8 +14,13 @@ class MyWidget(QWidget):
         super().__init__()
 
         global entity, utterance, intent, checkedtoPrint, exampleSentence
+
         self.checkBoxes = []
         self.searchedIndex = []
+        self.cbShow = []
+        self.searchText = []
+        self.category_to_show = []
+        self.option_to_show = []
         checkedtoPrint = []
         exampleSentence = []
         entity = []
@@ -55,19 +60,16 @@ class MyWidget(QWidget):
         quitBtn = QPushButton('닫기')
         quitBtn.setStyleSheet("color: black")
         quitBtn.setIcon(QIcon(os.path.join(basedir, "icons", "exit.png")))
-        #quitBtn.setBaseSize(50, 20)
         quitBtn.clicked.connect(QCoreApplication.instance().quit)
 
         searchBtn = QPushButton('Search')
         searchBtn.setIcon(QIcon(os.path.join(basedir, "icons", "Search_Icon.png")))
         searchBtn.setStyleSheet("color: black")
-        #searchBtn.resize(quitBtn.sizeHint())
         searchBtn.clicked.connect(self.search_clicked)
 
         printBtn = QPushButton('Print')
         printBtn.setStyleSheet("color: black")
         printBtn.setIcon(QIcon(os.path.join(basedir, "icons", "print.png")))
-        #printBtn.resize(quitBtn.sizeHint())
         printBtn.clicked.connect(self.saveFile)
 
         showOptionBox = QComboBox(self)
@@ -75,10 +77,10 @@ class MyWidget(QWidget):
         showOptionBox.addItem('선택 항목 숨김')
         showOptionBox.addItem('선택 항목만 표시')
         showOptionBox.setStyleSheet("color: black")
-        #showOptionBox.resize(quitBtn.sizeHint())
-        showOptionBox.currentIndexChanged.connect(self.search_clicked)
+        showOptionBox.currentIndexChanged.connect(self.option_changed)
 
         categoryBox = QComboBox(self)
+        categoryBox.setStyleSheet("color: black")
         categoryBox.addItem('전체')
         includedCategory = []
         for category in intent["category"]:
@@ -104,9 +106,9 @@ class MyWidget(QWidget):
         searchBar = QGridLayout()
         searchBar.addWidget(searchBtn, 0, 1)
         self.searchText = QLineEdit()
+        self.searchText.setStyleSheet("color: black")
         self.searchText.setBaseSize(60, 20)
         self.searchText.returnPressed.connect(self.search_clicked)
-        self.category = []
         searchBar.addWidget(self.searchText, 0, 0)
 
         #search scroll
@@ -124,6 +126,10 @@ class MyWidget(QWidget):
             sent = QLabel(intent["exampleSentence"][i])
             sent.setStyleSheet("color: black")
             exampleSentence.append(sent)
+            self.cbShow.append(i)
+            self.searchedIndex.append(i)
+            self.category_to_show.append(i)
+            self.option_to_show.append(i)
 
         for i in range(len(self.checkBoxes)):
             self.checkBoxes[i].stateChanged.connect(self.on_checked)
@@ -198,86 +204,80 @@ class MyWidget(QWidget):
             utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
             if cb.isChecked() is True:
                 if cb.text() not in checkedtoPrint:
-                    checkedtoPrint.append(cb.text())
-                if option == 1:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
+                    checkedtoPrint.append(i)
             else:
                 if cb.text() in checkedtoPrint:
-                    checkedtoPrint.remove(cb.text())
-                if option == 2:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
+                    checkedtoPrint.remove(i)
 
+        self.option_changed()
 
     def search_clicked(self):
         input = self.searchText.text()
         self.searchedIndex = searchAlgo.searchAlgo.IntentSearch(input)
-        searchGrid = self.searchGrid
-
-        option = showOptionBox.currentIndex()
-        for i in range(searchGrid.rowCount() - 2):
-            cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
-            utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
-            if option == 0:
-                if i in self.searchedIndex:
-                    cb.setHidden(False)
-                    utter.setText(exampleSentence[i].text())
-                    utter.setHidden(False)
-                else:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
-            elif option == 1: #선택 항목 제외
-                if cb.isChecked() == False and i in self.searchedIndex:
-                    cb.setHidden(False)
-                    utter.setText(exampleSentence[i].text())
-                    utter.setHidden(False)
-                else:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
-            elif option == 2: #선택항목만 표시
-                if cb.isChecked() == True and i in self.searchedIndex:
-                    cb.setHidden(False)
-                    utter.setText(exampleSentence[i].text())
-                    utter.setHidden(False)
-                else:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
+        self.showCB()
 
     def categoryChanged(self):
-        category = categoryBox.currentText()
-        searchGrid = self.searchGrid
-        for i in range(searchGrid.rowCount() - 2):
-            checkboxCategory = intent["category"][i]
-            print(checkboxCategory)
         #intent["category"] 와 cb 순서가 같은 점을 이용해 인덱스로 활용
+        current_category = categoryBox.currentText()
+        searchGrid = self.searchGrid
+
+        for i in range(searchGrid.rowCount() - 2):
+            if current_category == '전체' and i not in self.category_to_show:
+                self.category_to_show.append(i)
+            elif current_category != '전체':
+                print(current_category)
+                if intent["category"][i] == current_category and i not in self.category_to_show:
+                    self.category_to_show.append(i)
+                elif intent["category"][i] != current_category and i in self.category_to_show:
+                    self.category_to_show.remove(i)
+
+        self.showCB()
 
     def selectAll(self):
         searchGrid = self.searchGrid
         option = showOptionBox.currentIndex()
         for i in range(searchGrid.rowCount() - 2):
             cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
-            utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
             if cb.isHidden() is False and cb.isChecked() is False: #not hidden -> check & add
+                checkedtoPrint.append(i)
                 cb.toggle()
-                checkedtoPrint.append(cb.text())
-                if option == 1:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
 
+        self.showCB()
 
     def deselectAll(self):
+        #fix here
         searchGrid = self.searchGrid
         option = showOptionBox.currentIndex()
         for i in range(searchGrid.rowCount() - 2):
             cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
-            utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
-            if cb.isHidden() is False and cb.isChecked() is True: #not hidden -> check
+            if cb.isHidden() is False and cb.isChecked() is True: #not hidden & checkecked
+                checkedtoPrint.remove(i)
                 cb.toggle()
-                checkedtoPrint.remove(cb.text())
-                if option == 2:
-                    cb.setHidden(True)
-                    utter.setHidden(True)
+
+        self.showCB()
+
+    def option_changed(self):
+        option = showOptionBox.currentIndex()
+        searchGrid = self.searchGrid
+        for i in range(searchGrid.rowCount() - 2):
+            cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
+            utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
+            if option == 0: #전체 보임
+                if i not in self.option_to_show:
+                    self.option_to_show.append(i)
+            elif option == 1: #선택 항목 숨김
+                if cb.isChecked() is True and i in self.option_to_show:
+                    self.option_to_show.remove(i)
+                elif cb.isChecked() is False and i not in self.option_to_show:
+                    self.option_to_show.append(i)
+            else: #선택 항목 표시
+                if cb.isChecked() is True and i not in self.option_to_show:
+                    self.option_to_show.append(i)
+                elif cb.isChecked() is False and i in self.option_to_show:
+                    self.option_to_show.remove(i)
+
+        self.showCB()
+
 
 
     def openFile(self):
@@ -287,3 +287,27 @@ class MyWidget(QWidget):
     def saveFile(self):
         fname = QFileDialog.getSaveFileName(self, 'save', './')
         check.printClicked(fname[0])
+
+    def showCB(self):
+        #교집합 찾아서 해당 항목들만 출력한다.
+        option = showOptionBox.currentIndex()
+        searchGrid = self.searchGrid
+
+        self.cbShow = set(self.searchedIndex) & set(self.category_to_show) & set(self.option_to_show)
+
+        print("\n")
+        print(self.searchedIndex)
+        print(self.category_to_show)
+        print(self.option_to_show)
+        print(self.cbShow)
+
+        for i in range(searchGrid.rowCount() - 2):
+            cb = self.searchGrid.itemAtPosition(i+2, 0).widget()
+            utter = self.searchGrid.itemAtPosition(i+2, 1).widget()
+            if i in self.cbShow:
+                cb.show()
+                utter.show()
+                self.cbShow.remove(i)
+            else:
+                cb.hide()
+                utter.hide()
