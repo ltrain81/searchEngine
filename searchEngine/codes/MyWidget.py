@@ -13,15 +13,15 @@ class MyWidget(QWidget):
     def __init__(self):
         super().__init__()
 
+        QToolTip.setFont(QFont("SansSerif", 14))
+
         global entity, utterance, intent, checkedtoPrint, exampleSentence
 
         self.checkBoxes = []
-
         self.cbShow = []
         self.category_to_show = []
         self.searchedIndex = []
         self.option_to_show = []
-
         checkedtoPrint = []
         exampleSentence = []
         entity = []
@@ -304,7 +304,6 @@ class MyWidget(QWidget):
                     self.option_to_show.remove(i)
 
         self.showCB()
-
 
 
     def openFile(self):
